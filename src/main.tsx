@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { decodeNotes, encodeNotes, makeNote, filterNotes } from './model.js';
 
-const STAGE = 2;
+const STAGE = 3;
 const KEY = 'vintern.qa.notes.v1';
 type Note = { id: string; title: string; content: string; tags: string[]; createdAt: string; updatedAt: string };
 function loadNotes(): { notes: Note[]; issue: string } {
