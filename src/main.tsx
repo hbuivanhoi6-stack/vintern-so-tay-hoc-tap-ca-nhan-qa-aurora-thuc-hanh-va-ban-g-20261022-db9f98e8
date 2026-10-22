@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 type Note = { id: string; title: string; content: string; tags: string[] };
-const validateTitle = false;
+const validateTitle = true;
 function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
