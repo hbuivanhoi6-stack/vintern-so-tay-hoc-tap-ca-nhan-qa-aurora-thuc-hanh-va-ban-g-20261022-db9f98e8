@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { decodeNotes, encodeNotes, makeNote, filterNotes } from './model.js';
+const when = '2026-10-22T00:00:00.000Z';
+const note = makeNote({ title: '  React  ', content: '<script>plain text</script>', tags: 'react, typescript, react' }, null, when, 'note-one');
+test('normalizes title and duplicate tags without changing content', () => { assert.equal(note.title, 'React'); assert.deepEqual(note.tags, ['react','typescript']); assert.equal(note.content, '<script>plain text</script>'); });
+test('rejects whitespace title', () => assert.throws(() => makeNote({title:'  ',content:'',tags:''},null,when,'bad'), /required/));
+test('rejects excessively long title and content', () => { assert.throws(() => makeNote({title:'x'.repeat(201),content:'',tags:''},null,when,'long')); assert.throws(() => makeNote({title:'Fine',content:'x'.repeat(20001),tags:''},null,when,'long')); });
+test('editing preserves ID and creation time', () => { const updated=makeNote({title:'Edited',content:'New',tags:'react'},note,'2026-10-23T00:00:00.000Z','ignored'); assert.equal(updated.id,note.id); assert.equal(updated.createdAt,note.createdAt); assert.notEqual(updated.updatedAt,note.updatedAt); assert.equal(note.title,'React'); });
+test('versioned export round trips', () => { const json=encodeNotes([note]); assert.equal(JSON.parse(json).schemaVersion,1); assert.deepEqual(decodeNotes(json),[note]); });
+test('empty storage differs from corrupt storage', () => { assert.deepEqual(decodeNotes(null),[]); assert.throws(()=>decodeNotes('{broken')); assert.throws(()=>decodeNotes('{"schemaVersion":2,"notes":[]}')); });
+test('rejects missing fields, duplicate IDs and invalid dates', () => { for(const notes of [[{}],[note,note],[{...note,updatedAt:'bad'}]]) assert.throws(()=>decodeNotes(JSON.stringify({schemaVersion:1,notes}))); });
+test('search and tag filters are combined and case insensitive', () => { assert.equal(filterNotes([note],'REACT','typescript').length,1); assert.equal(filterNotes([note],'REACT','missing').length,0); assert.equal(filterNotes([note],'absent','react').length,0); });
